@@ -1,0 +1,20 @@
+# 데이터셋
+task: MNIST
+
+model: DNN
+
+batch_size: 64
+
+# 초기화
+random_seed: 54321
+
+# 레귤러리제이션
+dropout_rate: 0.5
+l2_reg_lambda: 1.0e-4
+
+optimizer: adam
+lr: 1.0e-3
+
+
+# 트레이닝 프로세스
+max_epochs: 30
