@@ -32,7 +32,7 @@ def main():
     print("device:", device)
 
     # 결과 저장 및 체크포인트 경로를 설정하기 위해 타임스탬프를 이용한 폴더 경로를 생성합니다.
-    timestamp = "1742613596"  # 하드코딩된 타임스탬프 값입니다.
+    timestamp = "1742629754"  # 하드코딩된 타임스탬프 값입니다.
     out_dir = os.path.abspath(os.path.join(os.path.curdir, "runs", timestamp))
 
     # 테스트 데이터셋 로드
