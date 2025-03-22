@@ -18,3 +18,6 @@ lr: 1.0e-3
 
 # 트레이닝 프로세스
 max_epochs: 30
+
+# Early Stopping 설정 (예: 3번 연속 개선되지 않으면 종료)
+early_stopping_patience: 3

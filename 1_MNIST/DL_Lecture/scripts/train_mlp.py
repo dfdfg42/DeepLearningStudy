@@ -93,6 +93,16 @@ def main():
     print('========================================')
     print("Start training...")
 
+    # -------------------- Early Stopping 설정 --------------------
+    # YAML에서 'early_stopping_patience' 항목을 읽어오고, 없으면 기본값 5 사용
+    if 'early_stopping_patience' in params:
+        patience = params['early_stopping_patience']
+    else:
+        patience = 5
+
+    epochs_since_improvement = 0  # 검증 정확도 개선 없는 에포크 수
+    # ------------------------------------------------------------
+
     # 에포크 반복: 전체 데이터를 여러 번 반복하여 학습
     for epoch in range(params['max_epochs']):
         train_loss = 0  # 해당 에포크 동안 누적된 손실 초기화
@@ -111,7 +121,6 @@ def main():
             optimizer.zero_grad()
 
             # 이미지 데이터를 1차원 벡터(784차원)로 변환 후 모델에 입력하여 출력값 계산
-            # 원래 x의 shape: [batch_size, 1, 28, 28] -> 변환 후: [batch_size, 784]
             outputs = model.forward(x.view(-1, 28 * 28))
 
             # 모델 출력과 실제 라벨(y) 간의 CrossEntropy 손실 계산
@@ -162,10 +171,10 @@ def main():
         print("training dataset average loss: %.3f" % train_ave_loss)
         print("training_time: %.2f minutes" % training_time)
 
-        # 검증 단계: 모델의 일반화 성능을 평가하기 위한 부분 (early stopping 기준)
-        val_correct_cnt = 0  # 검증 데이터에서 맞춘 샘플 수 초기화
-        val_loss = 0  # 검증 손실 누적 초기화
-        val_batch_cnt = 0  # 검증 배치 수 초기화
+        # 검증 단계: 모델의 일반화 성능을 평가하기 위한 부분
+        val_correct_cnt = 0
+        val_loss = 0
+        val_batch_cnt = 0
 
         model.eval()  # 모델을 평가 모드로 전환 (dropout 등 비활성화)
         with torch.no_grad():  # 검증 시에는 gradient 계산 불필요
@@ -177,16 +186,14 @@ def main():
                 outputs = model.forward(x.view(-1, 28 * 28))
                 # 검증 손실 계산
                 loss = criterion(outputs, y)
-                val_loss += loss.item()  # 손실 누적
-                val_batch_cnt += 1  # 배치 수 증가
+                val_loss += loss.item()
+                val_batch_cnt += 1
 
-                # 예측 결과 처리: 가장 높은 값을 가진 클래스 인덱스 선택
+                # 예측 결과 처리
                 _, top_pred = torch.topk(outputs, k=1, dim=-1)
                 top_pred = top_pred.squeeze(dim=1)
-                # 맞춘 예측 개수를 누적
                 val_correct_cnt += int(torch.sum(top_pred == y))
 
-        # 전체 검증 데이터에 대한 정확도와 평균 손실 계산
         val_acc = val_correct_cnt / len(val_dataset) * 100  # 검증 정확도 (%)
         val_ave_loss = val_loss / val_batch_cnt  # 검증 평균 손실
         print("validation dataset accuracy: %.2f" % val_acc)
@@ -197,23 +204,35 @@ def main():
 
         # 모델 성능이 개선되면(검증 정확도가 최고 기록을 갱신하면) 체크포인트 저장
         if val_acc > highest_val_acc:
-            # 현재 에포크 모델을 저장 (에포크별 파일)
             save_path = checkpoint_dir + '/epoch_' + str(epoch + 1) + '.pth'
-            torch.save({
-                'epoch': epoch + 1,
-                'model_state_dict': model.state_dict()
-            }, save_path)
+            torch.save({'epoch': epoch + 1,
+                        'model_state_dict': model.state_dict()},
+                       save_path)
 
-            # 최고 성능 모델을 best.pth로 저장 (나중에 불러오기 용이)
             save_path = checkpoint_dir + '/best.pth'
-            torch.save({
-                'epoch': epoch + 1,
-                'model_state_dict': model.state_dict()
-            }, save_path)
-            highest_val_acc = val_acc  # 최고 검증 정확도 갱신
+            torch.save({'epoch': epoch + 1,
+                        'model_state_dict': model.state_dict()},
+                       save_path)
+            highest_val_acc = val_acc
 
-        # for문 내부에서 에포크 값을 증가시키는 것은 불필요합니다.
-        epoch += 1
+            # 검증 정확도 개선 -> epochs_since_improvement 초기화
+            epochs_since_improvement = 0
+            print(f"New best model saved! val_acc: {val_acc:.2f}%")
+        else:
+            # 개선이 없으면 +1
+            epochs_since_improvement += 1
+            print(f"No improvement for {epochs_since_improvement} epoch(s).")
+
+            # Early Stopping 조건 체크
+            if epochs_since_improvement >= patience:
+                print(f"Early stopping triggered! (patience={patience})")
+                break
+
+        # epoch += 1는 필요 없음 (for문이 자동 증가)
+
+    print("Training finished.")
+    total_time = (time.time() - start_time) / 60
+    print("Total training time: {:.2f} minutes".format(total_time))
 
 
 if __name__ == '__main__':
