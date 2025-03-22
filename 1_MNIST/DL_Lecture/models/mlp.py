@@ -2,7 +2,6 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-
 class MNIST_model(nn.Module):
     def __init__(self, drop_prop=0.5):
         super().__init__()
@@ -18,13 +17,14 @@ class MNIST_model(nn.Module):
         # Dropout 레이어 (drop_prop=0.5 사용)
         self.dropout = nn.Dropout(drop_prop)
 
-        # Xavier weight initialization 적용
-        self._init_xavier()
+        # He (Kaiming) weight initialization 적용
+        self._init_he()
 
-    def _init_xavier(self):
+    def _init_he(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
-                torch.nn.init.xavier_normal_(m.weight)
+                # ReLU 활성화 함수와 함께 사용할 때 적합한 He 초기화 적용
+                torch.nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
                 torch.nn.init.zeros_(m.bias)
 
     def forward(self, x):
@@ -38,6 +38,6 @@ class MNIST_model(nn.Module):
         out = F.relu(self.fc3(out))
         out = self.dropout(out)  # 세 번째 히든 레이어 뒤 드롭아웃 적용
 
-        # 출력 레이어 (드롭아웃은 보통 출력 레이어 앞에는 적용하지 않는 경우가 많습니다.)
+        # 출력 레이어 (일반적으로 출력 전에 드롭아웃은 적용하지 않습니다.)
         out = self.fc4(out)
         return out
