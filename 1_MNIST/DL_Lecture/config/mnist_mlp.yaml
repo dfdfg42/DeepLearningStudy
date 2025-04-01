@@ -13,7 +13,6 @@ l2_reg_lambda: 1.0e-4  # Reduced L2 regularization
 # 옵티마이저 설정
 optimizer: adam
 lr: 1.0e-3  # Increased learning rate
-scheduler: reduce_on_plateau  # Add learning rate scheduler
 
 # 학습 설정
 max_epochs: 150
