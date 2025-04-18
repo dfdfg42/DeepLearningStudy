@@ -26,7 +26,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("device:", device)
 
-    timestamp = "1712784031"
+    timestamp = "1743754827"
     out_dir = os.path.abspath((os.path.join(os.path.curdir, "runs", timestamp)))
 
     # 데이터 로드

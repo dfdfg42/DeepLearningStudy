@@ -48,7 +48,7 @@ def main():
         # 파이토치에서 제공하는 MNIST dataset
         # train data augmentation : 1) size 4만큼 패딩 후 32의 크기로 random cropping, 2) 데이터 좌우반전(2배).
         transforms_train = transforms.Compose([  # training data를 위한 transforms
-            transforms.RandomCrop(32, padding=4),
+            transforms.RandomCrop(32, padding=2),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),

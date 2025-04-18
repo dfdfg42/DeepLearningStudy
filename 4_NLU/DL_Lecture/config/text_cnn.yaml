@@ -1,0 +1,58 @@
+# 데이터셋
+task: MR
+
+data_files:
+  MR:
+    pos_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.pos
+    neg_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.neg
+    pos_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.pos
+    neg_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.neg
+oversample_train: true
+
+# 디멘션
+model: CNN
+model_params_cnn:
+  filter_lengths: [3, 4, 5]
+  filter_counts: [100, 100, 100]
+
+batch_size: 64
+
+# 트레이닝 여부
+trainable_padding: true
+
+# 초기화
+random_seed: 54321
+embedding_file: D:/python/workspace/DL_Lecture/data/GoogleNews-vectors-negative300.bin
+embedding_dim: 300
+vocab_size: 30000
+use_unk_for_oov: true
+
+# 레귤러리제이션
+dropout_rate: 0.5
+l2_reg_lambda: 1.0e-4
+
+optimizer: adam
+#optimizer: adadelta
+
+optimizer_params:
+  adam:
+    lr: 1.0e-3
+    #betas: [0.7, 0.999]
+    #weight_decay: 1.0e-7
+  adadelta:
+    lr: 1.0
+#    rho: 0.95
+#    eps: 1.0e-8
+
+#lr_schedule: step_exponential_decay
+lr_schedule: slanted_triangle
+lr_schedule_params:
+  step_exponential_decay:
+    gamma: 0.98
+    step_size: 1000
+  slanted_triangle:
+    cut_fraction: 0.1
+    max_min_lr_ratio: 256
+
+# 트레이닝 프로세스
+max_epochs: 100
