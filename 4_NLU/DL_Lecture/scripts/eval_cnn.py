@@ -15,7 +15,7 @@ def main():
         params_filename = sys.argv[1]
         print(sys.argv)
     else:
-        params_filename = '../config/text_cnn.yaml'
+        params_filename = '../config/text_cnn_snips.yaml'
 
     with open(params_filename, 'r', encoding="UTF8") as f:
         params = yaml.safe_load(f)
@@ -27,7 +27,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("device:", device)
 
-    timestamp = "1713832956"
+    timestamp = "1745216041"
     out_dir = os.path.abspath((os.path.join(os.path.curdir, "runs", timestamp)))
     vocab_path = os.path.abspath(os.path.join(out_dir, "checkpoints/vocab"))
     emb_path = os.path.abspath(os.path.join(out_dir, "checkpoints/emb"))
@@ -61,12 +61,21 @@ def main():
     test_y = torch.tensor(test_y)
     test_loader = DataLoader(TensorDataset(test_x, test_y), batch_size=params['batch_size'], shuffle=False, num_workers=4)
 
-    # 학습 모델 생성
+    # # 학습 모델 생성
+    # model = SentenceCnn(nb_classes=nb_classes,
+    #                     word_embedding_numpy=initW,
+    #                     filter_lengths=params['model_params_cnn']['filter_lengths'],
+    #                     filter_counts=params['model_params_cnn']['filter_counts'],
+    #                     dropout_rate=params['dropout_rate']).to(device)
+
+    #── 학습 모델 생성 ─────────────────────────────────────────
     model = SentenceCnn(nb_classes=nb_classes,
                         word_embedding_numpy=initW,
                         filter_lengths=params['model_params_cnn']['filter_lengths'],
                         filter_counts=params['model_params_cnn']['filter_counts'],
-                        dropout_rate=params['dropout_rate']).to(device)
+                        dropout_rate=params['dropout_rate'],
+                        multi_channel=True  # ★ 학습 때와 동일하게
+                        ).to(device)
 
     # test 시작
     model.eval()

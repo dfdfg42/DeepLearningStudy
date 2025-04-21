@@ -26,7 +26,7 @@ def main():
         params_filename = sys.argv[1]
         print(sys.argv)
     else:
-        params_filename = '../config/text_cnn.yaml'
+        params_filename = '../config/text_cnn_snips.yaml'
 
     with open(params_filename, 'r', encoding="UTF8") as f:
         params = yaml.safe_load(f)
@@ -84,33 +84,71 @@ def main():
         train_x = text_to_indices(train_x_text, word_id_dict, params['use_unk_for_oov'])
         dev_x = text_to_indices(dev_x_text, word_id_dict, params['use_unk_for_oov'])
 
+        # ───────────── embedding 전략 읽기 ─────────────
+        # config 에서 rand / static / nonstatic 중 하나를 골라주세요.
+    strategy = params.get('embedding_strategy', 'nonstatic').lower()
 
-    if params['embedding_file']:  # word2vec 활용 시
-        print("Loading W2V data...")
-        pre_emb = KeyedVectors.load_word2vec_format(params['embedding_file'], binary=True)  # pre-trained word2vec load
-        pre_emb.init_sims(replace=True)
-        num_keys = len(pre_emb.key_to_index)
-        print("loaded word2vec len ", num_keys)
+    # ───────── initW 초기화 ─────────
+    if strategy == 'rand':
+        # 완전 랜덤 초기화
+        initW = np.random.uniform(
+            -0.25, 0.25,
+            (params['vocab_size'], params['embedding_dim'])
+        ).astype(np.float32)
 
-        # initial matrix with random uniform, pretrained word2vec으로 vocabulary 내 단어들을 초기화하기 위핸 weight matrix 초기화
-        initW = np.random.uniform(-0.25, 0.25, (params['vocab_size'], params['embedding_dim']))
-        # load any vectors from the word2vec
-        print("init initW cnn.W in FLAG")
-        for w in word_id_dict.keys():
-            arr = []
-            s = re.sub('[^0-9a-zA-Z]+', '', w)
-            if w in pre_emb:  # 직접 구축한 vocab 내 단어가 google word2vec에 존재하면
-                arr = pre_emb[w]  # word2vec vector를 가져옴
-            elif w.lower() in pre_emb:  # 소문자로도 확인
-                arr = pre_emb[w.lower()]
-            elif s in pre_emb:  # 전처리 후 확인
-                arr = pre_emb[s]
-            elif s.isdigit():  # 숫자이면
-                arr = pre_emb['1']
-            if len(arr) > 0:  # 직접 구축한 vocab 내 단어가 google word2vec에 존재하면
-                idx = word_id_dict[w]  # 단어 index
-                initW[idx] = np.asarray(arr).astype(np.float32)  # 적절한 index에 word2vec word 할당
-            initW[0] = np.zeros(params['embedding_dim'])
+    else:
+        # pretrained 불러올 두 경우(static, nonstatic) 공통: 랜덤으로 채워두고
+        initW = np.random.uniform(
+            -0.25, 0.25,
+            (params['vocab_size'], params['embedding_dim'])
+        ).astype(np.float32)
+
+        # config 에 embedding_file 이 지정되어 있으면 실제로 pretrained 로드
+        emb_file = params.get('embedding_file')
+        if emb_file:
+            print(f"Loading pretrained embeddings for strategy={strategy} …")
+            pre_emb = KeyedVectors.load_word2vec_format(emb_file, binary=True)
+            pre_emb.init_sims(replace=True)
+            for w, idx in word_id_dict.items():
+                key = re.sub('[^0-9a-zA-Z]+', '', w)
+                vec = None
+                if w in pre_emb:
+                    vec = pre_emb[w]
+                elif w.lower() in pre_emb:
+                    vec = pre_emb[w.lower()]
+                elif key in pre_emb:
+                    vec = pre_emb[key]
+                if vec is not None:
+                    initW[idx] = vec.astype(np.float32)
+
+    # PAD 토큰 임베딩은 항상 0으로 고정
+    initW[0] = np.zeros(params['embedding_dim'], dtype=np.float32)
+    # if params['embedding_file']:  # word2vec 활용 시
+    #     print("Loading W2V data...")
+    #     pre_emb = KeyedVectors.load_word2vec_format(params['embedding_file'], binary=True)  # pre-trained word2vec load
+    #     pre_emb.init_sims(replace=True)
+    #     num_keys = len(pre_emb.key_to_index)
+    #     print("loaded word2vec len ", num_keys)
+    #
+    #     # initial matrix with random uniform, pretrained word2vec으로 vocabulary 내 단어들을 초기화하기 위핸 weight matrix 초기화
+    #     initW = np.random.uniform(-0.25, 0.25, (params['vocab_size'], params['embedding_dim']))
+    #     # load any vectors from the word2vec
+    #     print("init initW cnn.W in FLAG")
+    #     for w in word_id_dict.keys():
+    #         arr = []
+    #         s = re.sub('[^0-9a-zA-Z]+', '', w)
+    #         if w in pre_emb:  # 직접 구축한 vocab 내 단어가 google word2vec에 존재하면
+    #             arr = pre_emb[w]  # word2vec vector를 가져옴
+    #         elif w.lower() in pre_emb:  # 소문자로도 확인
+    #             arr = pre_emb[w.lower()]
+    #         elif s in pre_emb:  # 전처리 후 확인
+    #             arr = pre_emb[s]
+    #         elif s.isdigit():  # 숫자이면
+    #             arr = pre_emb['1']
+    #         if len(arr) > 0:  # 직접 구축한 vocab 내 단어가 google word2vec에 존재하면
+    #             idx = word_id_dict[w]  # 단어 index
+    #             initW[idx] = np.asarray(arr).astype(np.float32)  # 적절한 index에 word2vec word 할당
+    #         initW[0] = np.zeros(params['embedding_dim'])
 
     nb_pad = int(max(params['model_params_cnn']['filter_lengths']) / 2 + 0.5)
 
@@ -125,12 +163,20 @@ def main():
     dev_loader = DataLoader(TensorDataset(dev_x, dev_y), batch_size=params['batch_size'], shuffle=False)
 
     # 학습 모델 생성
-    model = SentenceCnn(nb_classes=nb_classes,
-                        word_embedding_numpy=initW,
-                        filter_lengths=params['model_params_cnn']['filter_lengths'],
-                        filter_counts=params['model_params_cnn']['filter_counts'],
-                        dropout_rate=params['dropout_rate']).to(device)
+    model = SentenceCnn(
+        nb_classes=nb_classes,
+        word_embedding_numpy=initW,
+        filter_lengths=params['model_params_cnn']['filter_lengths'],
+        filter_counts=params['model_params_cnn']['filter_counts'],
+        dropout_rate=params['dropout_rate'],
+        multi_channel=(strategy == 'multichannel')  # ★ 추가
+    ).to(device)
 
+    # ── 임베딩 학습 여부 ─────────────────────────────────────────
+    if strategy in ('rand', 'nonstatic', 'multichannel'):
+        model.word_embedding.weight.requires_grad = True
+    else:  # static
+        model.word_embedding.weight.requires_grad = False
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adadelta(model.parameters(), lr=params['optimizer_params'][params['optimizer']]['lr'], weight_decay=params['l2_reg_lambda']) # lamda 값과 함께 weight decay 적용

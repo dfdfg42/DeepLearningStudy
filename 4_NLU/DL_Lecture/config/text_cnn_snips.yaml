@@ -3,14 +3,14 @@ task: SNIPS
 
 data_files:
   MR:
-    pos_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.pos
-    neg_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.neg
-    pos_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.pos
-    neg_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.neg
+    pos_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity.pos
+    neg_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity.neg
+    pos_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity_test.pos
+    neg_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity_test.neg
   SNIPS:
-    train_file: D:/python/workspace/DL_Lecture/data/SNIPS/train
-    test_file: D:/python/workspace/DL_Lecture/data/SNIPS/test
-    dev_file: D:/python/workspace/DL_Lecture/data/SNIPS/valid
+    train_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/SNIPS/train
+    test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/SNIPS/test
+    dev_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/SNIPS/valid
 oversample_train: true
 
 # 디멘션
@@ -26,13 +26,15 @@ trainable_padding: true
 
 # 초기화
 random_seed: 54321
-embedding_file: D:/python/workspace/DL_Lecture/data/GoogleNews-vectors-negative300.bin
+# 임베딩 전략 선택 (rand  |  static  |  nonstatic | multichannel)
+embedding_strategy: multichannel
+embedding_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/GoogleNews-vectors-negative300.bin
 embedding_dim: 300
 vocab_size: 30000
 use_unk_for_oov: true
 
 # 레귤러리제이션
-dropout_rate: 0.5
+dropout_rate: 0.6
 l2_reg_lambda: 1.0e-4
 
 optimizer: adam

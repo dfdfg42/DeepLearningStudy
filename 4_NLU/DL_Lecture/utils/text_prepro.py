@@ -3,6 +3,7 @@ import collections
 import torch
 import unicodedata
 import glob
+import os
 import random
 import json
 
@@ -30,8 +31,58 @@ def clean_str(string, nmt=False):
     else:
         return string.strip().lower()
 
-def load_snips_data(file_path, label_dictionary):
-    pass
+def load_snips_data(path, label_dictionary):
+    """
+    지원 형태
+    1)  intent별 .txt 파일이 든 폴더 (PlayMusic.txt …)
+    2)  train/valid/test 폴더 안의 {label, seq.in} 2‑파일 구조   ←★NEW
+    3)  intent  \\t sentence 형식의 단일 파일
+    """
+    texts, labels = [], []
+
+    # ─── case 1 : intent별 .txt 파일들 ───
+    if os.path.isdir(path):
+        txt_files = glob.glob(os.path.join(path, "*.txt"))
+        if txt_files:                           # (1) 번 구조
+            for fp in txt_files:
+                intent = os.path.splitext(os.path.basename(fp))[0]
+                if intent not in label_dictionary:
+                    label_dictionary[intent] = len(label_dictionary)
+                with open(fp, encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        texts.append(clean_str(line))
+                        labels.append(label_dictionary[intent])
+            return texts, labels, label_dictionary
+
+        # (2) 번 ‑ 3‑파일 구조  -----------------
+        seq_in  = os.path.join(path, "seq.in")
+        label_f = os.path.join(path, "label")
+        if os.path.isfile(seq_in) and os.path.isfile(label_f):
+            with open(seq_in,  encoding="utf-8") as fin, \
+                 open(label_f, encoding="utf-8") as flabel:
+                for sent, intent in zip(fin, flabel):
+                    sent   = clean_str(sent.strip())
+                    intent = intent.strip()
+                    if intent not in label_dictionary:
+                        label_dictionary[intent] = len(label_dictionary)
+                    texts.append(sent)
+                    labels.append(label_dictionary[intent])
+            return texts, labels, label_dictionary
+        # --------------------------------------
+
+    # ─── case 3 : 단일 TSV 파일 ───
+    with open(path, encoding="utf-8") as f:
+        for line in f:
+            intent, sentence = line.strip().split('\t', 1)
+            if intent not in label_dictionary:
+                label_dictionary[intent] = len(label_dictionary)
+            texts.append(clean_str(sentence))
+            labels.append(label_dictionary[intent])
+
+    return texts, labels, label_dictionary
 
 def load_mr_data(pos_file, neg_file):
     pos_text = list(open(pos_file, "r", encoding='latin-1').readlines()) # 긍정적인 review 읽어서 list 형태로 관리

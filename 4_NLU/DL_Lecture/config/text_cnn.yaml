@@ -3,10 +3,10 @@ task: MR
 
 data_files:
   MR:
-    pos_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.pos
-    neg_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity.neg
-    pos_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.pos
-    neg_test_file: D:/python/workspace/DL_Lecture/data/MR/rt-polarity_test.neg
+    pos_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity.pos
+    neg_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity.neg
+    pos_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity_test.pos
+    neg_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/MR/rt-polarity_test.neg
 oversample_train: true
 
 # 디멘션
@@ -22,7 +22,7 @@ trainable_padding: true
 
 # 초기화
 random_seed: 54321
-embedding_file: D:/python/workspace/DL_Lecture/data/GoogleNews-vectors-negative300.bin
+embedding_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/4_NLU/DL_Lecture/data/GoogleNews-vectors-negative300.bin
 embedding_dim: 300
 vocab_size: 30000
 use_unk_for_oov: true
