@@ -1,0 +1,18 @@
+# 데이터셋
+task: CIFAR10
+
+model: google/vit-base-patch16-224-in21k
+
+batch_size: 16
+
+# 초기화
+random_seed: 54321
+
+# 레귤러리제이션
+l2_reg_lambda: 1.0e-5
+
+lr: 3.0e-5
+
+
+# 트레이닝 프로세스
+max_epochs: 1

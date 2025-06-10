@@ -1,0 +1,24 @@
+# 데이터셋
+task: Mask
+data_files:
+  annotation_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/annotations
+  image_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/images
+  annotation_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_annotations
+  image_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_images
+  annotation_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_annotations
+  image_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_images
+
+batch_size: 4
+
+# 초기화
+random_seed: 54321
+
+# 레귤러리제이션
+l2_reg_lambda: 5.0e-4
+
+momentum: 0.9
+lr: 5.0e-3
+
+
+# 트레이닝 프로세스
+max_epochs: 50

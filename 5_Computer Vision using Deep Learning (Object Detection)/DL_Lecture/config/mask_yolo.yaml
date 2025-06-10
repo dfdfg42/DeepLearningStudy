@@ -1,0 +1,27 @@
+# Dataset
+task: Mask
+data_files:
+  annotation_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/annotations
+  image_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/images
+  annotation_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_annotations
+  image_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_images
+  annotation_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_annotations
+  image_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_images
+
+
+# Initialization
+random_seed: 54321
+
+# ── 모델 파라미터 ─────────────────────────────────────────────────────
+img_size:    416      # 입력 이미지 크기 (YOLO 표준)
+num_classes: 4        # 마스크 데이터셋 클래스 수
+
+# ── 학습 하이퍼파라미터 ────────────────────────────────────────────────
+batch_size:  8
+lr:          0.001
+momentum:    0.9
+l2_reg:      0.0005
+max_epochs:  50
+
+# ── 평가 시 체크포인트 ──────────────────────────────────────────────────
+ckpt_path: "best_yolo.pth"

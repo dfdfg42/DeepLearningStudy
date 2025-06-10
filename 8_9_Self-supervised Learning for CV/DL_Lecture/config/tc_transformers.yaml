@@ -1,0 +1,17 @@
+# 데이터셋
+task: MR
+
+data_files:
+  train_file: D:/python/workspace/DL_Lecture/data/MR/mr_train.csv
+  val_file: D:/python/workspace/DL_Lecture/data/MR/mr_dev.csv
+  test_file: D:/python/workspace/DL_Lecture/data/MR/mr_test.csv
+
+# cycle
+save_steps: 8000
+eval_steps: 4000
+warmup_ratio: 0.1
+
+max_seq_length: 128
+
+# 트레이닝 프로세스
+max_epochs: 3.0

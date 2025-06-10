@@ -1,0 +1,19 @@
+# 데이터셋
+task: CIFAR10
+
+model: CNN
+
+batch_size: 128
+
+# 초기화
+random_seed: 54321
+
+# 레귤러리제이션
+l2_reg_lambda: 1.0e-4
+
+momentum: 0.9
+lr: 1.0e-1
+
+
+# 트레이닝 프로세스
+max_epochs: 200

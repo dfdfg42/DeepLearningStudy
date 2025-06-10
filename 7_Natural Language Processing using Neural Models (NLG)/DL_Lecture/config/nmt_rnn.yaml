@@ -1,0 +1,33 @@
+# 데이터셋
+task: EN2FR
+
+data_files:
+  EN2FR:
+    train_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/7_Natural Language Processing using Neural Models (NLG)/DL_Lecture/data/eng-fra_train.txt
+    test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/7_Natural Language Processing using Neural Models (NLG)/DL_Lecture/data/eng-fra_test.txt
+
+# 디멘션
+model: RNN
+model_params_rnn:
+  hidden_size: 2000
+  teacher_forcing_ratio: 0.7
+
+batch_size: 128
+
+# 초기화
+random_seed: 54321
+embedding_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/7_Natural Language Processing using Neural Models (NLG)/DL_Lecture/data/GoogleNews-vectors-negative300.bin
+embedding_dim: 300
+vocab_size: 30000
+use_unk_for_oov: true
+
+optimizer: adam
+
+optimizer_params:
+  adam:
+    lr: 1.0e-3
+    #betas: [0.7, 0.999]
+    #weight_decay: 1.0e-7
+
+# 트레이닝 프로세스
+max_epochs: 15

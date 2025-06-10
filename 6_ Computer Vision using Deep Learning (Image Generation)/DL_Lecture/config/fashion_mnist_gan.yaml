@@ -1,0 +1,20 @@
+# 데이터셋
+task: Fashion
+
+model: CGAN
+
+batch_size: 100
+img_size: 28
+z_dim: 100
+num_show_img: 50
+# 초기화
+random_seed: 54321
+
+optimizer: adam
+lr_G: 2.0e-4
+lr_D: 2.0e-4
+beta1: 0.5
+beta2: 0.999
+
+# 트레이닝 프로세스
+max_epochs: 40
