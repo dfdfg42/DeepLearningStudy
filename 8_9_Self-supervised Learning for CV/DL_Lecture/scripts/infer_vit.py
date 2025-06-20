@@ -21,7 +21,7 @@ def main():
         params_filename = sys.argv[1]
         print(sys.argv)
     else:
-        params_filename = './config/cifar10_vit.yaml'
+        params_filename = '../config/cifar10_vit.yaml'
 
     with open(params_filename, 'r', encoding="UTF8") as f:
         params = yaml.safe_load(f)
@@ -34,7 +34,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("device:", device)
 
-    timestamp = "1749038439"
+    timestamp = "1749653396"
     out_dir = os.path.abspath((os.path.join(os.path.curdir, "runs", timestamp)))
 
     # 데이터 로드
@@ -45,7 +45,7 @@ def main():
             transforms.Lambda(lambda x: image_processor(images=x, return_tensors="pt", do_rescale=True, do_normalize=True))
         ])
 
-    imgs = ImageFolder('scripts/example', transform=transforms_test)
+    imgs = ImageFolder('../scripts/example', transform=transforms_test)
     print("imgs:", imgs)
     inference_loader = torch.utils.data.DataLoader(imgs, batch_size=1)
 

@@ -20,6 +20,7 @@ from DL_Lecture.models.vit import ViT_model
 from transformers import ViTImageProcessor, get_cosine_schedule_with_warmup
 
 def main():
+    #설정파일 로드
     if len(sys.argv) >= 2:
         params_filename = sys.argv[1]
         print(sys.argv)
@@ -37,22 +38,62 @@ def main():
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(seed)
 
-
+    #gpu사용여부 체크
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     print(device)
     torch.backends.cudnn.benchmark = True
 
     # 데이터 로드
     if params['task'] == "ImageNet":
-        pass
+        #허깅페이스에서 전처리기 로드
+        model_name = params['model']
+        image_processor = ViTImageProcessor.from_pretrained(model_name)
+        image_size = image_processor.size['height']
+
+        # 변환 및 데이터 증강 실행
+        transforms_train = transforms.Compose([
+            transforms.RandomResizedCrop(image_size),
+            transforms.RandomHorizontalFlip(),
+
+            lambda img: image_processor(images=img, return_tensors="pt", do_rescale=True, do_normalize=True)
+        ])
+        # 검증 데이터는 리사이즈와 중앙 크롭만 실행
+        transforms_val = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.CenterCrop(image_size),
+            lambda img: image_processor(images=img, return_tensors="pt", do_rescale=True, do_normalize=True)
+        ])
+
+        # 데이터셋 로드
+        train_data_path = params.get('imagenet_train_dir', './data/imagenet/train')
+        val_data_path = params.get('imagenet_val_dir', './data/imagenet/val')
+
+        # 데이터 디렉토리 존재 여부 확인
+        if not os.path.isdir(train_data_path) or not os.path.isdir(val_data_path):
+            print(f"Error: ImageNet data directory not found.")
+            print(f"Please set 'imagenet_train_dir' and 'imagenet_val_dir' in your config file.")
+            sys.exit(1)
+
+        train_data = torchvision.datasets.ImageFolder(root=train_data_path, transform=transforms_train)
+        val_data = torchvision.datasets.ImageFolder(root=val_data_path, transform=transforms_val)
+
+        train_sampler = None
+        val_sampler = None
+
+        train_indices = range(len(train_data))
+        val_indices = range(len(val_data))
+
+        print('The number of training data: ', len(train_data))
+        print('The number of validation data: ', len(val_data))
 
     elif params['task'] == "CIFAR10":
+        #hugging face에서 vit모델 전처리기 로드
         model_name = params['model']
         image_processor = ViTImageProcessor.from_pretrained(model_name)
         # train data augmentation : 1) size 4만큼 패딩 후 32의 크기로 random cropping, 2) 데이터 좌우반전(2배).
         transforms_train = transforms.Compose([  # training data를 위한 transforms
-            transforms.RandomCrop(32, padding=4),
-            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4), #이미지에 4픽셀 패딩후 32x32로 자르기
+            transforms.RandomHorizontalFlip(), #50%확률로 좌우반전
             transforms.Lambda(lambda x: image_processor(images=x, return_tensors="pt", do_rescale=True, do_normalize=True))  # ViT 모델에 맞게 전처리 (리사이즈, 정규화)
         ])
         transforms_val = transforms.Compose([  # validation data를 위한 transforms
@@ -62,6 +103,7 @@ def main():
         # CIFAR10 dataset 다운로드
         train_data = torchvision.datasets.CIFAR10(root='./data/', train=True, transform=transforms_train,
                                                   download=True)
+        #train용 분리
         val_data = torchvision.datasets.CIFAR10(root='./data/', train=True, transform=transforms_val, download=True)
 
         # train_data, val_data의 분리
@@ -83,7 +125,10 @@ def main():
     # 학습 모델 생성
     model = ViT_model(model_name).to(device)  # 모델을 지정한 device로 올려줌
 
+
+    #손실함수로 crossentropy 함수 사용
     criterion = nn.CrossEntropyLoss()
+    #옵티마이저 adam 사용
     optimizer = torch.optim.Adam(model.parameters(), lr=params['lr'], weight_decay=params['l2_reg_lambda'])
     
     # Total training steps 계산
@@ -118,7 +163,8 @@ def main():
         train_batch_cnt = 0
         total = 0
         model.train()
-        
+
+        #tqdm으로 현재상황 표시
         pbar = tqdm(train_loader, desc=f'Epoch {epoch+1} Training')
 
         for x, y in pbar:
@@ -126,7 +172,7 @@ def main():
             y = y.to(device)
             
             optimizer.zero_grad()# iteration 마다 gradient를 0으로 초기화
-            x['pixel_values'] = x['pixel_values'].squeeze()
+            x['pixel_values'] = x['pixel_values'].squeeze() #불필요한 차원 제거
             outputs = model.forward(x) # 28 * 28 이미지를 784 features로 reshape 후 forward
             loss = criterion(outputs, y)# cross entropy loss 계산
             loss.backward()# 가중치 w에 대해 loss를 미분

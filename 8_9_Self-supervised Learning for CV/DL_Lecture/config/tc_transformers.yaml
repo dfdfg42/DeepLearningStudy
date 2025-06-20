@@ -2,9 +2,24 @@
 task: MR
 
 data_files:
-  train_file: D:/python/workspace/DL_Lecture/data/MR/mr_train.csv
-  val_file: D:/python/workspace/DL_Lecture/data/MR/mr_dev.csv
-  test_file: D:/python/workspace/DL_Lecture/data/MR/mr_test.csv
+  train_file: D:/DeepLearningStudy/8_9_Self-supervised Learning for CV/DL_Lecture/data/MR/mr_train.csv
+  val_file: D:/DeepLearningStudy/8_9_Self-supervised Learning for CV/DL_Lecture/data/MR/mr_dev.csv
+  test_file: D:/DeepLearningStudy/8_9_Self-supervised Learning for CV/DL_Lecture/data/MR/mr_test.csv
+
+mr_source: "csv"  # 또는 "csv" "huggingface"
+mr_dataset_name: "rotten_tomatoes"  # 기본값
+
+
+# 또는 다른 데이터셋 선택
+# mr_dataset_name: "mattymchen/mr"
+# mr_dataset_name: "stanfordnlp/imdb"
+
+# CSV 파일 사용하는 경우
+# task: "MR"
+# mr_source: "csv"
+# data_files:
+#   train_file: "path/to/train.csv"
+#   val_file: "path/to/val.csv"
 
 # cycle
 save_steps: 8000
@@ -14,4 +29,4 @@ warmup_ratio: 0.1
 max_seq_length: 128
 
 # 트레이닝 프로세스
-max_epochs: 3.0
+max_epochs: 7.0

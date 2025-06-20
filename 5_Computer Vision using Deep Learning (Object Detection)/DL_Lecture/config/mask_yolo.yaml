@@ -1,12 +1,12 @@
 # Dataset
 task: Mask
 data_files:
-  annotation_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/annotations
-  image_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/images
-  annotation_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_annotations
-  image_val_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_images
-  annotation_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_annotations
-  image_test_file: C:/Users/kokyungwoo/PycharmProjects/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_images
+  annotation_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/annotations
+  image_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/images
+  annotation_val_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_annotations
+  image_val_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/val_images
+  annotation_test_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_annotations
+  image_test_file: D:/DeepLearningStudy/5_Computer Vision using Deep Learning (Object Detection)/DL_Lecture/data/mask_archive/test_images
 
 
 # Initialization

@@ -44,6 +44,7 @@ class DataTrainingArguments:
         },
     )
 
+
 @dataclass
 class ModelArguments:
     """
@@ -130,24 +131,105 @@ def main():
     # download the dataset.
     # Downloading and loading xnli dataset from the hub.
 
-    data_params = params['data_files']
+    # 데이터 파라미터 (CSV 로드시에만 필요)
+    data_params = params.get('data_files', {})
 
     # 데이터 로드
-    if params['task'] == "SST2":  # huggingface datasets로 부터 xnli dataset load
-        train_dataset = datasets.load_dataset("nyu-mll/glue", "sst2", split="train", cache_dir=model_args.cache_dir,)
-        eval_dataset = datasets.load_dataset("nyu-mll/glue", "sst2", split="validation", cache_dir=model_args.cache_dir,)
+    if params['task'] == "SST2":  # huggingface datasets로 부터 sst2 dataset load
+        train_dataset = datasets.load_dataset("nyu-mll/glue", "sst2", split="train", cache_dir=model_args.cache_dir, )
+        eval_dataset = datasets.load_dataset("nyu-mll/glue", "sst2", split="validation",
+                                             cache_dir=model_args.cache_dir, )
         label_list = train_dataset.features["label"].names
-    elif params['task'] == "COLA":  # huggingface datasets로 부터 qnli dataset load
-        train_dataset = datasets.load_dataset("nyu-mll/glue", "cola", split="train", cache_dir=model_args.cache_dir,)
-        eval_dataset = datasets.load_dataset("nyu-mll/gluee", "cola", split="validation", cache_dir=model_args.cache_dir,)
+        text_column = "sentence"
+
+    elif params['task'] == "COLA":  # huggingface datasets로 부터 cola dataset load
+        train_dataset = datasets.load_dataset("nyu-mll/glue", "cola", split="train", cache_dir=model_args.cache_dir, )
+        eval_dataset = datasets.load_dataset("nyu-mll/glue", "cola", split="validation",
+                                             cache_dir=model_args.cache_dir, )
         label_list = train_dataset.features["label"].names
-    elif params['task'] == "MR":  # huggingface datasets로 부터 wnli dataset load
-        data_files = {}
-        data_files["train"] = data_params['train_file']
-        data_files["validation"] = data_params['val_file']
-        train_dataset = datasets.load_dataset("csv", data_files=data_files, split="train")
-        eval_dataset = datasets.load_dataset("csv", data_files=data_files, split="validation")
-        label_list = train_dataset.unique("label")
+        text_column = "sentence"
+
+    elif params['task'] == "MR":  # MR dataset load
+        # MR 데이터셋 로드 방식 선택 (yaml 설정에서 결정)
+        mr_source = params.get('mr_source', 'huggingface')  # 'huggingface' 또는 'csv'
+
+        if mr_source == 'huggingface':
+            # Hugging Face datasets에서 로드
+            mr_dataset_name = params.get('mr_dataset_name', 'rotten_tomatoes')
+
+            if mr_dataset_name == 'rotten_tomatoes':
+                train_dataset = datasets.load_dataset("rotten_tomatoes", split="train", cache_dir=model_args.cache_dir)
+                eval_dataset = datasets.load_dataset("rotten_tomatoes", split="validation",
+                                                     cache_dir=model_args.cache_dir)
+                text_column = "text"
+            elif mr_dataset_name == 'mattymchen/mr':
+                train_dataset = datasets.load_dataset("mattymchen/mr", split="train", cache_dir=model_args.cache_dir)
+                eval_dataset = datasets.load_dataset("mattymchen/mr", split="test", cache_dir=model_args.cache_dir)
+                text_column = "sentence"
+            elif mr_dataset_name == 'stanfordnlp/imdb':
+                train_dataset = datasets.load_dataset("stanfordnlp/imdb", split="train", cache_dir=model_args.cache_dir)
+                eval_dataset = datasets.load_dataset("stanfordnlp/imdb", split="test", cache_dir=model_args.cache_dir)
+                text_column = "text"
+            else:
+                # 사용자 정의 데이터셋
+                train_dataset = datasets.load_dataset(mr_dataset_name, split="train", cache_dir=model_args.cache_dir)
+                eval_dataset = datasets.load_dataset(mr_dataset_name, split="validation",
+                                                     cache_dir=model_args.cache_dir)
+                text_column = "text"  # 기본값
+
+            label_list = train_dataset.features["label"].names
+
+        else:  # csv 방식
+            # CSV에서 로드 (기존 방식)
+            data_files = {}
+            data_files["train"] = data_params['train_file']
+            data_files["validation"] = data_params['val_file']
+            train_dataset = datasets.load_dataset("csv", data_files=data_files, split="train")
+            eval_dataset = datasets.load_dataset("csv", data_files=data_files, split="validation")
+
+            # MR 데이터셋의 컬럼명 확인 및 설정
+            logger.info(f"Train dataset columns: {train_dataset.column_names}")
+            logger.info(f"Train dataset sample: {train_dataset[0]}")
+
+            # 일반적인 텍스트 컬럼명들을 확인하여 자동으로 매핑
+            possible_text_columns = ['text', 'review', 'sentence', 'content', 'document']
+            text_column = None
+
+            for col in possible_text_columns:
+                if col in train_dataset.column_names:
+                    text_column = col
+                    logger.info(f"Using '{col}' as text column for MR dataset")
+                    break
+
+            if text_column is None:
+                # 첫 번째 컬럼을 텍스트로 가정
+                text_column = train_dataset.column_names[0]
+                logger.warning(f"Could not find standard text column. Using '{text_column}' as text column")
+
+            # 라벨 리스트 생성
+            label_list = train_dataset.unique("label")
+            logger.info(f"Label list for MR: {label_list}")
+
+            # MR 데이터셋 전처리 함수 (컬럼명 표준화)
+            def standardize_mr_dataset(examples):
+                # 텍스트 컬럼을 'sentence'로 표준화
+                examples['sentence'] = examples[text_column]
+                return examples
+
+            # MR 데이터셋 전처리 적용
+            train_dataset = train_dataset.map(
+                standardize_mr_dataset,
+                batched=True,
+                desc="Standardizing MR train dataset columns"
+            )
+
+            eval_dataset = eval_dataset.map(
+                standardize_mr_dataset,
+                batched=True,
+                desc="Standardizing MR eval dataset columns"
+            )
+
+            text_column = "sentence"  # 표준화 후 컬럼명
 
     # Labels
     num_labels = len(label_list)
@@ -190,7 +272,7 @@ def main():
     def preprocess_function(examples):
         # Tokenize the texts
         return tokenizer(
-            examples["sentence"],
+            examples[text_column],
             padding=padding,
             max_length=params["max_seq_length"],
             truncation=True,
@@ -207,7 +289,6 @@ def main():
 
     for index in random.sample(range(len(train_dataset)), 3):
         logger.info(f"Sample {index} of the training set: {train_dataset[index]}.")
-
 
     with training_args.main_process_first(desc="validation dataset map pre-processing"):
         eval_dataset = eval_dataset.map(
